@@ -1,0 +1,35 @@
+import cv2
+import numpy as np
+
+cam = cv2.VideoCapture(0)
+kernel = np.ones((15,15),dtype=np.float32) / 225
+while True:
+    ret,frame = cam.read()
+    frame = cv2.resize(frame,None,None,0.35,0.35)
+    median = cv2.filter2D(frame,-1,kernel)
+    hsv = cv2.cvtColor(median,cv2.COLOR_BGR2HSV)
+    
+    lower = np.array([100,200,0])
+    upper = np.array([140,255,255])
+    mask = cv2.inRange(hsv,lower,upper)
+
+    lower2 = np.array([94,80,2])
+    upper2 = np.array([126,255,255])
+    mask2 = cv2.inRange(hsv,lower2,upper2)
+
+    mask3 = mask + mask2
+
+    contours,hiearachys = cv2.findContours(mask3,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+    #cv2.drawContours(frame,contours,-1,(0,255,0),3)
+
+    for c in contours:
+        (x,y,w,h) = cv2.boundingRect(c)
+        cv2.rectangle(frame,(x,y),(x+w,y+h),(255,255,0),2)
+
+    cv2.imshow("pencere",frame)
+    cv2.imshow("pencere2",mask3)
+    k = cv2.waitKey(1) & 0xFF
+    if k == 27:
+        break
+
+cam.release()
